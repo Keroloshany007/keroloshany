@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Kerolos Hany — Full-Stack Engineer</title>
+<meta name="description" content="Kerolos Hany — Full-stack developer building production-grade web platforms with React, Laravel, Vue & modern e-commerce systems." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- Lenis -->
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          obsidian:'#07080C', surface:'#0E1016', elevated:'#15181F',
+          ivory:'#F3F1EC', violet:'#8B7CF6', cyan:'#5EEAD4',
+          magenta:'#F472B6', amber:'#FFB37C', muted:'#8C93A6',
+        },
+        fontFamily: {
+          display:['"Bricolage Grotesque"','sans-serif'],
+          sans:['Inter','sans-serif'],
+          mono:['"JetBrains Mono"','monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  :root{
+    --obsidian:#07080C; --surface:#0E1016; --elevated:#15181F;
+    --ivory:#F3F1EC; --violet:#8B7CF6; --cyan:#5EEAD4; --magenta:#F472B6;
+    --amber:#FFB37C; --muted:#8C93A6; --line:rgba(243,241,236,.08);
+  }
+  *{ box-sizing:border-box; }
+  html{ background:var(--obsidian); }
+  body{
+    background:var(--obsidian); color:var(--ivory);
+    font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  ::selection{ background:var(--violet); color:#fff; }
+  h1,h2,h3,h4,.font-display{ font-family:'Bricolage Grotesque',sans-serif; letter-spacing:-0.02em; }
+  .font-mono{ font-family:'JetBrains Mono',monospace; }
+
+  /* ===== Grain ===== */
+  .grain{
+    position:fixed; inset:0; z-index:55; pointer-events:none; opacity:.045; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ===== Cursor spotlight (mouse-follow light) ===== */
+  #spotlight{
+    position:fixed; top:0; left:0; width:600px; height:600px; pointer-events:none; z-index:1;
+    background:radial-gradient(circle, rgba(139,124,246,.14), rgba(94,234,212,.06) 40%, transparent 70%);
+    transform:translate(-50%,-50%); border-radius:50%; mix-blend-mode:screen; will-change:transform;
+  }
+  .cursor-dot{ position:fixed; top:0; left:0; width:8px; height:8px; border-radius:50%; background:var(--cyan); pointer-events:none; z-index:70; transform:translate(-50%,-50%); mix-blend-mode:difference; }
+  .cursor-ring{ position:fixed; top:0; left:0; width:38px; height:38px; border-radius:50%; border:1px solid var(--violet); pointer-events:none; z-index:69; opacity:.6; transform:translate(-50%,-50%); transition:width .25s,height .25s,opacity .25s,border-color .25s; }
+  @media (max-width:1024px){ .cursor-dot,.cursor-ring,#spotlight{ display:none; } }
+
+  /* ===== Glass ===== */
+  .glass{ background:rgba(21,24,31,.5); border:1px solid var(--line); backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%); }
+  .glass-light{ background:rgba(243,241,236,.05); border:1px solid rgba(243,241,236,.10); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
+  .hairline{ border-color:var(--line); }
+
+  /* ===== Aurora gradients ===== */
+  .aurora-text{
+    background:linear-gradient(120deg,#8B7CF6 0%, #F472B6 45%, #5EEAD4 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    background-size:200% auto; animation:aurora-shift 8s ease infinite;
+  }
+  @keyframes aurora-shift{ 0%,100%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } }
+
+  .aurora-bg{ position:absolute; inset:0; overflow:hidden; z-index:0; }
+  .aurora-blob{ position:absolute; border-radius:50%; filter:blur(100px); opacity:.45; will-change:transform; }
+  @keyframes driftA{ 0%,100%{ transform:translate(0,0) scale(1) rotate(0deg); } 50%{ transform:translate(80px,-50px) scale(1.2) rotate(40deg); } }
+  @keyframes driftB{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(-60px,60px) scale(1.1); } }
+  @keyframes driftC{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(40px,40px) scale(0.9); } }
+
+  /* ===== Floating ===== */
+  @keyframes float-y{ 0%,100%{ transform:translateY(0px) rotate(0deg);} 50%{ transform:translateY(-18px) rotate(2deg);} }
+  .float{ animation:float-y 6s ease-in-out infinite; }
+  .float-delay{ animation-delay:1.6s; }
+  .float-slow{ animation:float-y 10s ease-in-out infinite; }
+
+  /* ===== Magnetic / spotlight cards ===== */
+  .magnetic{ display:inline-flex; will-change:transform; }
+  .spotlight-card{ position:relative; isolation:isolate; }
+  .spotlight-card::before{
+    content:''; position:absolute; inset:0; z-index:0; border-radius:inherit;
+    background:radial-gradient(380px circle at var(--x,50%) var(--y,50%), rgba(139,124,246,.18), transparent 60%);
+    opacity:0; transition:opacity .35s ease; pointer-events:none;
+  }
+  .spotlight-card:hover::before{ opacity:1; }
+
+  /* ===== Reveal helpers ===== */
+  .reveal{ opacity:0; transform:translateY(40px); }
+  .reveal-mask{ overflow:hidden; }
+  .reveal-mask > span{ display:inline-block; transform:translateY(110%); }
+
+  /* ===== Live availability dot ===== */
+  .pulse-dot{ position:relative; width:8px; height:8px; border-radius:50%; background:#4ADE80; }
+  .pulse-dot::after{
+    content:''; position:absolute; inset:-4px; border-radius:50%; border:1px solid #4ADE80;
+    animation:pulse-ring 2s cubic-bezier(.4,0,.6,1) infinite;
+  }
+  @keyframes pulse-ring{ 0%{ transform:scale(.6); opacity:.8;} 100%{ transform:scale(2.2); opacity:0;} }
+
+  /* ===== Marquee ===== */
+  .marquee-track{ display:flex; width:max-content; animation:marquee 36s linear infinite; }
+  @keyframes marquee{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  /* ===== 3D tilt ===== */
+  .tilt{ transform-style:preserve-3d; transition:transform .15s ease-out; }
+
+  /* ===== Stack graphic (hero signature) ===== */
+  .stack-wrap{ perspective:1400px; }
+  .stack-layer{
+    position:absolute; left:50%; top:50%; width:340px; height:200px;
+    border-radius:20px; transform-style:preserve-3d;
+    border:1px solid rgba(243,241,236,.12);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+
+  /* ===== Skill orbs ===== */
+  .orb{
+    position:absolute; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border-radius:50%; border:1px solid var(--line); backdrop-filter:blur(10px);
+    transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+    cursor:default;
+  }
+  .orb:hover{ border-color:var(--cyan); box-shadow:0 0 40px rgba(94,234,212,.25); z-index:5; transform:scale(1.08); }
+
+  /* ===== Scrollbar ===== */
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-track{ background:var(--obsidian); }
+  ::-webkit-scrollbar-thumb{ background:#272b36; border-radius:4px; }
+
+  /* ===== Section marker ===== */
+  .marker{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.18em; color:var(--muted); text-transform:uppercase; }
+
+  /* ===== Timeline ===== */
+  .timeline-line{ position:absolute; left:7px; top:0; bottom:0; width:1px; background:linear-gradient(to bottom, var(--violet), var(--cyan), transparent); }
+  .timeline-dot{ position:absolute; left:0; width:14px; height:14px; border-radius:50%; background:var(--obsidian); border:2px solid var(--violet); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body class="bg-obsidian text-ivory">
+
+<div class="grain"></div>
+<div id="spotlight"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Particle canvas -->
+<canvas id="particles" class="fixed inset-0 z-0 pointer-events-none opacity-60"></canvas>
+
+<!-- ============================================================ -->
+<!-- NAVIGATION                                                     -->
+<!-- ============================================================ -->
+<header id="siteNav" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
+  <nav class="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-[78px]">
+    <a href="#home" class="font-display text-xl tracking-tight">Kerolos<span class="aurora-text"> /</span></a>
+
+    <div class="hidden lg:flex items-center gap-9 font-medium text-[14px] text-ivory/65">
+      <a href="#about" class="hover:text-ivory transition-colors">About</a>
+      <a href="#skills" class="hover:text-ivory transition-colors">Stack</a>
+      <a href="#work" class="hover:text-ivory transition-colors">Work</a>
+      <a href="#testimonials" class="hover:text-ivory transition-colors">Testimonials</a>
+      <a href="#contact" class="hover:text-ivory transition-colors">Contact</a>
+    </div>
+
+    <a href="#contact" class="magnetic hidden sm:inline-flex relative overflow-hidden rounded-full glass-light text-ivory text-[14px] font-medium px-5 py-2.5 hover:bg-white/[0.08] transition-colors">
+      Let's talk
+    </a>
+
+    <button id="menuToggle" class="lg:hidden flex flex-col gap-1.5 p-2" aria-label="Toggle menu">
+      <span class="block w-6 h-px bg-ivory"></span>
+      <span class="block w-6 h-px bg-ivory"></span>
+    </button>
+  </nav>
+
+  <div id="mobileMenu" class="lg:hidden hidden glass mx-4 mt-1 rounded-2xl px-6 py-6 flex flex-col gap-5 text-[15px]">
+    <a href="#about" class="text-ivory/80">About</a>
+    <a href="#skills" class="text-ivory/80">Stack</a>
+    <a href="#work" class="text-ivory/80">Work</a>
+    <a href="#testimonials" class="text-ivory/80">Testimonials</a>
+    <a href="#contact" class="text-ivory/80">Contact</a>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- HERO                                                           -->
+<!-- ============================================================ -->
+<section id="home" class="relative min-h-screen flex flex-col justify-center overflow-hidden pt-32 pb-16">
+
+  <div class="aurora-bg">
+    <div class="aurora-blob bg-violet" style="width:48vw;height:48vw;top:-16%;left:-14%;animation:driftA 24s ease-in-out infinite;"></div>
+    <div class="aurora-blob bg-cyan" style="width:36vw;height:36vw;bottom:-14%;right:-6%;animation:driftB 28s ease-in-out infinite;"></div>
+    <div class="aurora-blob bg-magenta" style="width:30vw;height:30vw;top:35%;left:58%;opacity:.3;animation:driftC 30s ease-in-out infinite;"></div>
+  </div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 w-full grid lg:grid-cols-12 gap-12 items-center">
+
+    <div class="lg:col-span-7">
+      <div class="reveal flex items-center gap-3 mb-7">
+        <span class="pulse-dot"></span>
+        <span class="marker">Available for new projects · Cairo, EG (GMT+2)</span>
+      </div>
+
+      <h1 class="font-display font-medium text-[14vw] sm:text-[8vw] lg:text-[5.4vw] leading-[0.96] tracking-tight">
+        <div class="reveal-mask"><span>I build</span></div>
+        <div class="reveal-mask"><span>full-stack products</span></div>
+        <div class="reveal-mask"><span class="aurora-text italic">engineered to scale.</span></div>
+      </h1>
+
+      <p class="reveal mt-8 text-lg sm:text-xl text-ivory/60 max-w-xl leading-relaxed">
+        Full-stack developer specializing in <span class="text-ivory">React, Laravel &amp; modern e-commerce</span> —
+        turning ambitious ideas into fast, reliable, production-ready platforms for clients across Egypt, Kuwait, and beyond.
+      </p>
+
+      <div class="reveal mt-10 flex flex-wrap items-center gap-4">
+        <a href="#work" class="magnetic relative rounded-full bg-ivory text-obsidian font-semibold px-7 py-4 text-[15px] hover:bg-white transition-colors">
+          View selected work
+        </a>
+        <a href="#contact" class="magnetic group relative rounded-full glass-light text-ivory font-medium px-7 py-4 text-[15px] flex items-center gap-2 hover:bg-white/[0.08] transition-colors">
+          Start a project <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </a>
+      </div>
+
+      <div class="reveal mt-14 flex items-center gap-3 text-xs font-mono text-muted">
+        <span>SCROLL TO EXPLORE</span>
+        <span class="relative w-24 h-px bg-line overflow-hidden">
+          <span class="absolute top-0 left-0 h-px w-6 bg-cyan animate-scrollx"></span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Signature: 3D layered "stack" graphic + floating tech chips -->
+    <div class="lg:col-span-5 relative h-[440px] hidden md:block stack-wrap" id="heroVisual">
+      <div class="stack-layer bg-violet/10" id="layer1" style="transform:translate(-50%,-50%) translateZ(60px) rotateX(55deg) rotateZ(-12deg);"></div>
+      <div class="stack-layer bg-magenta/10" id="layer2" style="transform:translate(-50%,-50%) translateZ(0px) rotateX(55deg) rotateZ(-12deg);"></div>
+      <div class="stack-layer bg-cyan/10" id="layer3" style="transform:translate(-50%,-50%) translateZ(-60px) rotateX(55deg) rotateZ(-12deg);"></div>
+
+      <span class="absolute font-mono text-xs text-violet glass-light rounded-full px-3 py-1" style="top:18%; left:8%;">UI Layer · React / Vue</span>
+      <span class="absolute font-mono text-xs text-magenta glass-light rounded-full px-3 py-1" style="top:46%; left:50%;">API Layer · Laravel / Node</span>
+      <span class="absolute font-mono text-xs text-cyan glass-light rounded-full px-3 py-1" style="top:74%; left:14%;">Data Layer · MySQL / Mongo</span>
+
+      <div class="float absolute -top-2 right-4 glass rounded-2xl px-4 py-3 text-xs font-mono" data-depth="0.05">⚛️ React.js</div>
+      <div class="float float-delay absolute top-1/3 -left-4 glass rounded-2xl px-4 py-3 text-xs font-mono" data-depth="0.08">🐘 Laravel</div>
+      <div class="float-slow absolute bottom-6 right-10 glass rounded-2xl px-4 py-3 text-xs font-mono" data-depth="0.1">🟢 Node.js</div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes scrollx{ 0%{ transform:translateX(-30px);} 50%{ transform:translateX(100px);} 100%{ transform:translateX(-30px);} }
+  .animate-scrollx{ animation:scrollx 2.4s ease-in-out infinite; }
+</style>
+
+<!-- ============================================================ -->
+<!-- TECH MARQUEE                                                   -->
+<!-- ============================================================ -->
+<section class="relative border-t border-b hairline py-10 overflow-hidden">
+  <div class="relative">
+    <div class="marquee-track items-center gap-16 text-xl font-mono text-ivory/30">
+      <span>React.js</span><span>Laravel</span><span>Node.js</span><span>Vue.js</span><span>MySQL</span><span>MongoDB</span><span>PHP</span><span>WordPress</span><span>Tailwind CSS</span><span>REST APIs</span><span>WooCommerce</span><span>SEO</span>
+      <span>React.js</span><span>Laravel</span><span>Node.js</span><span>Vue.js</span><span>MySQL</span><span>MongoDB</span><span>PHP</span><span>WordPress</span><span>Tailwind CSS</span><span>REST APIs</span><span>WooCommerce</span><span>SEO</span>
+    </div>
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-28 bg-gradient-to-r from-obsidian to-transparent"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-obsidian to-transparent"></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ABOUT                                                          -->
+<!-- ============================================================ -->
+<section id="about" class="relative py-28 sm:py-36 border-b hairline">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 grid lg:grid-cols-12 gap-12">
+
+    <div class="lg:col-span-5">
+      <p class="reveal marker mb-4">// about</p>
+      <h2 class="reveal font-display text-4xl sm:text-5xl leading-[1.05] mb-6">Three years.<br/>Multiple industries.<br/>One obsession — <span class="aurora-text italic">shipping things that work.</span></h2>
+      <p class="reveal text-ivory/60 leading-relaxed mb-6">
+        I'm Kerolos Hany, a full-stack developer with 3+ years of hands-on experience building dynamic web applications,
+        e-commerce platforms, and scalable backend systems for clients across Egypt, Kuwait, and beyond.
+      </p>
+      <p class="reveal text-ivory/60 leading-relaxed">
+        My approach is end-to-end — from pixel-perfect interfaces to robust database architecture. I don't just write code,
+        I engineer digital products that grow with the business behind them.
+      </p>
+
+      <div class="reveal grid grid-cols-2 gap-4 mt-10">
+        <div class="spotlight-card glass rounded-2xl p-5">
+          <p class="text-2xl mb-2">🧩</p>
+          <p class="font-display text-base mb-1">Systems thinking</p>
+          <p class="text-sm text-ivory/50">Scalable, maintainable architecture from day one.</p>
+        </div>
+        <div class="spotlight-card glass rounded-2xl p-5">
+          <p class="text-2xl mb-2">⚡</p>
+          <p class="font-display text-base mb-1">Performance-obsessed</p>
+          <p class="text-sm text-ivory/50">Speed and optimization built into every layer.</p>
+        </div>
+        <div class="spotlight-card glass rounded-2xl p-5">
+          <p class="text-2xl mb-2">🎨</p>
+          <p class="font-display text-base mb-1">Design-literate</p>
+          <p class="text-sm text-ivory/50">Interfaces that feel as good as they look.</p>
+        </div>
+        <div class="spotlight-card glass rounded-2xl p-5">
+          <p class="text-2xl mb-2">🔧</p>
+          <p class="font-display text-base mb-1">Full-stack execution</p>
+          <p class="text-sm text-ivory/50">Frontend, backend, database — to deployment.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="lg:col-span-7 lg:pl-12 relative">
+      <div class="relative pl-10">
+        <div class="timeline-line"></div>
+
+        <div class="reveal relative pb-14">
+          <span class="timeline-dot" style="top:4px;"></span>
+          <p class="marker mb-2">2021</p>
+          <h3 class="font-display text-xl mb-2">First freelance projects</h3>
+          <p class="text-ivory/55 leading-relaxed max-w-md">Started building websites with PHP and WordPress for small local businesses — learning the fundamentals of real client work.</p>
+        </div>
+
+        <div class="reveal relative pb-14">
+          <span class="timeline-dot" style="top:4px; border-color:var(--magenta);"></span>
+          <p class="marker mb-2">2022 — 2023</p>
+          <h3 class="font-display text-xl mb-2">E-commerce specialization</h3>
+          <p class="text-ivory/55 leading-relaxed max-w-md">Built full WooCommerce &amp; Laravel storefronts with payment integrations, inventory systems, and admin dashboards for international brands.</p>
+        </div>
+
+        <div class="reveal relative pb-14">
+          <span class="timeline-dot" style="top:4px; border-color:var(--cyan);"></span>
+          <p class="marker mb-2">2024</p>
+          <h3 class="font-display text-xl mb-2">Modern frontend, React &amp; Vue</h3>
+          <p class="text-ivory/55 leading-relaxed max-w-md">Shifted toward component-driven frontends with React, Vue, and Tailwind — pairing them with REST APIs and MongoDB-backed services.</p>
+        </div>
+
+        <div class="reveal relative">
+          <span class="timeline-dot" style="top:4px; border-color:var(--amber);"></span>
+          <p class="marker mb-2">2025 — Now</p>
+          <h3 class="font-display text-xl mb-2">Full-stack production systems</h3>
+          <p class="text-ivory/55 leading-relaxed max-w-md">Delivering complete platforms — corporate sites, bilingual e-commerce, and booking systems — for clients across Egypt and Kuwait.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SKILLS — floating orb ecosystem                                -->
+<!-- ============================================================ -->
+<section id="skills" class="relative py-28 sm:py-36 border-b hairline overflow-hidden">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <p class="reveal marker mb-4">// stack</p>
+    <h2 class="reveal font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] max-w-2xl mb-4">A toolkit built for production, not demos.</h2>
+    <p class="reveal text-ivory/55 max-w-xl mb-16">Battle-tested technologies across four layers of the stack — grouped by where they live.</p>
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-5 sm:px-8 grid lg:grid-cols-4 gap-8" id="orbField">
+
+    <!-- Frontend cluster -->
+    <div class="reveal relative h-[320px] glass rounded-3xl overflow-hidden orb-cluster">
+      <p class="marker absolute top-5 left-5 z-10">Frontend</p>
+      <div class="orb bg-violet/10" style="width:90px;height:90px; top:18%; left:20%;"><span class="text-2xl">⚛️</span><span class="text-[10px] font-mono mt-1">React</span></div>
+      <div class="orb bg-violet/10" style="width:70px;height:70px; top:55%; left:55%;"><span class="text-xl">💚</span><span class="text-[10px] font-mono mt-1">Vue</span></div>
+      <div class="orb bg-violet/10" style="width:60px;height:60px; top:65%; left:18%;"><span class="text-lg">🌐</span><span class="text-[9px] font-mono mt-1">HTML/CSS</span></div>
+      <div class="orb bg-violet/10" style="width:54px;height:54px; top:14%; left:60%;"><span class="text-lg">🟨</span><span class="text-[9px] font-mono mt-1">JS ES6+</span></div>
+    </div>
+
+    <!-- Backend cluster -->
+    <div class="reveal relative h-[320px] glass rounded-3xl overflow-hidden orb-cluster">
+      <p class="marker absolute top-5 left-5 z-10">Backend</p>
+      <div class="orb bg-magenta/10" style="width:90px;height:90px; top:22%; left:50%;"><span class="text-2xl">🐘</span><span class="text-[10px] font-mono mt-1">Laravel</span></div>
+      <div class="orb bg-magenta/10" style="width:68px;height:68px; top:58%; left:16%;"><span class="text-xl">🟢</span><span class="text-[10px] font-mono mt-1">Node.js</span></div>
+      <div class="orb bg-magenta/10" style="width:58px;height:58px; top:68%; left:58%;"><span class="text-lg">🔌</span><span class="text-[9px] font-mono mt-1">REST APIs</span></div>
+    </div>
+
+    <!-- Data cluster -->
+    <div class="reveal relative h-[320px] glass rounded-3xl overflow-hidden orb-cluster">
+      <p class="marker absolute top-5 left-5 z-10">Data</p>
+      <div class="orb bg-cyan/10" style="width:88px;height:88px; top:24%; left:22%;"><span class="text-2xl">🗄️</span><span class="text-[10px] font-mono mt-1">MySQL</span></div>
+      <div class="orb bg-cyan/10" style="width:72px;height:72px; top:58%; left:56%;"><span class="text-xl">🍃</span><span class="text-[10px] font-mono mt-1">MongoDB</span></div>
+      <div class="orb bg-cyan/10" style="width:56px;height:56px; top:18%; left:62%;"><span class="text-lg">🐘</span><span class="text-[9px] font-mono mt-1">Postgres</span></div>
+    </div>
+
+    <!-- Platform cluster -->
+    <div class="reveal relative h-[320px] glass rounded-3xl overflow-hidden orb-cluster">
+      <p class="marker absolute top-5 left-5 z-10">Platform</p>
+      <div class="orb bg-amber/10" style="width:88px;height:88px; top:20%; left:48%;"><span class="text-2xl">🎨</span><span class="text-[10px] font-mono mt-1">Tailwind</span></div>
+      <div class="orb bg-amber/10" style="width:70px;height:70px; top:58%; left:14%;"><span class="text-xl">🔧</span><span class="text-[10px] font-mono mt-1">WordPress</span></div>
+      <div class="orb bg-amber/10" style="width:58px;height:58px; top:64%; left:58%;"><span class="text-lg">📈</span><span class="text-[9px] font-mono mt-1">SEO</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PROJECTS                                                       -->
+<!-- ============================================================ -->
+<section id="work" class="relative py-28 sm:py-36 border-b hairline">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <p class="reveal marker mb-4">// selected work</p>
+    <h2 class="reveal font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] max-w-2xl mb-16">Real products. Real clients. Real impact.</h2>
+
+    <!-- Large featured cards -->
+    <div class="space-y-8 mb-8">
+
+      <a href="https://nice.com.eg" target="_blank" rel="noopener" class="reveal project-card tilt group relative block rounded-3xl glass overflow-hidden">
+        <div class="grid md:grid-cols-2">
+          <div class="relative h-72 md:h-[440px] overflow-hidden">
+            <img src="https://nice.com.eg/wp-content/uploads/2025/08/nicegroup-removebg-preview-e1754966180436.png" alt="Nice Group corporate website" class="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-obsidian/80 via-transparent to-transparent"></div>
+          </div>
+          <div class="p-8 sm:p-12 flex flex-col justify-center">
+            <p class="marker mb-4">01 / 07 — Corporate Identity</p>
+            <h3 class="font-display text-3xl sm:text-4xl mb-4">Nice Group</h3>
+            <p class="text-ivory/60 leading-relaxed mb-6 max-w-md">Corporate website for a leading Egyptian company in the detergent &amp; cosmetics industry — multi-brand showcase, product catalog, and admin backend.</p>
+            <div class="flex flex-wrap gap-2 mb-8">
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">HTML5</span>
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">CSS3</span>
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">PHP</span>
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">MySQL</span>
+            </div>
+            <span class="inline-flex items-center gap-2 text-cyan font-medium group-hover:gap-3 transition-all">Visit live site <span class="group-hover:translate-x-1 transition-transform">↗</span></span>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://khan-shops.com" target="_blank" rel="noopener" class="reveal project-card tilt group relative block rounded-3xl glass overflow-hidden">
+        <div class="grid md:grid-cols-2">
+          <div class="p-8 sm:p-12 flex flex-col justify-center order-2 md:order-1">
+            <p class="marker mb-4">03 / 07 — Luxury Fashion</p>
+            <h3 class="font-display text-3xl sm:text-4xl mb-4">Khan Shops</h3>
+            <p class="text-ivory/60 leading-relaxed mb-6 max-w-md">Premium e-commerce store for leather bags, wallets &amp; accessories with custom product pages, wishlist, and full payment integration.</p>
+            <div class="flex flex-wrap gap-2 mb-8">
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">WooCommerce</span>
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">WordPress</span>
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">E-Commerce</span>
+            </div>
+            <span class="inline-flex items-center gap-2 text-magenta font-medium group-hover:gap-3 transition-all">Visit live site <span class="group-hover:translate-x-1 transition-transform">↗</span></span>
+          </div>
+          <div class="relative h-72 md:h-[440px] overflow-hidden order-1 md:order-2">
+            <img src="https://khan-shops.com/wp-content/uploads/2025/09/%D9%84%D9%88%D8%AC%D9%88-%D8%B9%D9%84%D9%89-%D8%A7%D8%B3%D9%88%D8%AF-removebg-preview.png" alt="Khan Shops luxury e-commerce" class="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-obsidian/80 via-transparent to-transparent"></div>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://iniestacademyegypt.com" target="_blank" rel="noopener" class="reveal project-card tilt group relative block rounded-3xl glass overflow-hidden">
+        <div class="grid md:grid-cols-2">
+          <div class="relative h-72 md:h-[440px] overflow-hidden">
+            <img src="https://iniestacademyegypt.com/wp-content/uploads/2026/06/EGYPT_PackMaster_IniestaAcademy_Country_S-Color-1024x1024.png" alt="Iniesta Academy Egypt" class="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-obsidian/80 via-transparent to-transparent"></div>
+          </div>
+          <div class="p-8 sm:p-12 flex flex-col justify-center">
+            <p class="marker mb-4">02 / 07 — Sports &amp; E-Commerce</p>
+            <h3 class="font-display text-3xl sm:text-4xl mb-4">Iniesta Academy Egypt</h3>
+            <p class="text-ivory/60 leading-relaxed mb-6 max-w-md">Official football academy platform — bilingual (AR/EN), camp registrations, packages, and e-commerce, built on WordPress.</p>
+            <div class="flex flex-wrap gap-2 mb-8">
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">WordPress</span>
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">WooCommerce</span>
+              <span class="px-3 py-1.5 rounded-full border hairline text-xs font-mono">PHP</span>
+            </div>
+            <span class="inline-flex items-center gap-2 text-violet font-medium group-hover:gap-3 transition-all">Visit live site <span class="group-hover:translate-x-1 transition-transform">↗</span></span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Smaller grid -->
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <a href="https://beautiquecosmeticsintl.com" target="_blank" rel="noopener" class="reveal project-card tilt group spotlight-card glass rounded-3xl p-6 flex flex-col justify-between min-h-[220px]">
+        <div>
+          <p class="marker mb-3">04 / 07</p>
+          <h3 class="font-display text-xl mb-2">Beautique Cosmetics</h3>
+          <p class="text-sm text-ivory/55 leading-relaxed">Full e-commerce platform for an international cosmetics brand — payments, inventory &amp; customer portal.</p>
+        </div>
+        <span class="mt-4 text-xs font-mono text-ivory/40 group-hover:text-cyan transition-colors">Laravel · MySQL ↗</span>
+      </a>
+      <a href="https://nice.com.eg/fasclean" target="_blank" rel="noopener" class="reveal project-card tilt group spotlight-card glass rounded-3xl p-6 flex flex-col justify-between min-h-[220px]">
+        <div>
+          <p class="marker mb-3">05 / 07</p>
+          <h3 class="font-display text-xl mb-2">Fasclean</h3>
+          <p class="text-sm text-ivory/55 leading-relaxed">Immersive, product-focused brand site with scroll animations and engaging storytelling.</p>
+        </div>
+        <span class="mt-4 text-xs font-mono text-ivory/40 group-hover:text-cyan transition-colors">Bootstrap · JS ↗</span>
+      </a>
+      <a href="https://spa-more.com" target="_blank" rel="noopener" class="reveal project-card tilt group spotlight-card glass rounded-3xl p-6 flex flex-col justify-between min-h-[220px]">
+        <div>
+          <p class="marker mb-3">06 / 07</p>
+          <h3 class="font-display text-xl mb-2">Spa &amp; More Kuwait</h3>
+          <p class="text-sm text-ivory/55 leading-relaxed">Luxury spa booking platform with online appointment scheduling and client management.</p>
+        </div>
+        <span class="mt-4 text-xs font-mono text-ivory/40 group-hover:text-cyan transition-colors">PHP · Booking API ↗</span>
+      </a>
+      <a href="https://berthinkuwait.com" target="_blank" rel="noopener" class="reveal project-card tilt group spotlight-card glass rounded-3xl p-6 flex flex-col justify-between min-h-[220px]">
+        <div>
+          <p class="marker mb-3">07 / 07</p>
+          <h3 class="font-display text-xl mb-2">Berthin Kuwait</h3>
+          <p class="text-sm text-ivory/55 leading-relaxed">Corporate website with modern aesthetics for a Kuwait-based company — services showcase &amp; portfolio.</p>
+        </div>
+        <span class="mt-4 text-xs font-mono text-ivory/40 group-hover:text-cyan transition-colors">WordPress · PHP ↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- STATS                                                          -->
+<!-- ============================================================ -->
+<section class="relative py-28 sm:py-36 border-b hairline overflow-hidden">
+  <div class="aurora-bg opacity-30">
+    <div class="aurora-blob bg-violet" style="width:34vw;height:34vw;top:-10%;right:8%;animation:driftA 26s ease-in-out infinite;"></div>
+  </div>
+  <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+    <p class="reveal marker mb-4">// by the numbers</p>
+    <h2 class="reveal font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] max-w-2xl mb-16">Numbers that come from doing the work.</h2>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="reveal rounded-3xl border hairline p-8">
+        <p class="font-display text-5xl sm:text-6xl"><span class="counter" data-target="3">0</span>+</p>
+        <p class="mt-4 text-ivory/55 text-sm">Years of experience</p>
+        <div class="mt-5 h-1 rounded-full bg-white/5 overflow-hidden"><div class="h-full w-[60%] bg-gradient-to-r from-violet to-cyan rounded-full"></div></div>
+      </div>
+      <div class="reveal rounded-3xl border hairline p-8">
+        <p class="font-display text-5xl sm:text-6xl"><span class="counter" data-target="30">0</span>+</p>
+        <p class="mt-4 text-ivory/55 text-sm">Projects shipped</p>
+        <div class="mt-5 h-1 rounded-full bg-white/5 overflow-hidden"><div class="h-full w-[85%] bg-gradient-to-r from-violet to-cyan rounded-full"></div></div>
+      </div>
+      <div class="reveal rounded-3xl border hairline p-8">
+        <p class="font-display text-5xl sm:text-6xl"><span class="counter" data-target="100" data-suffix="%">0</span></p>
+        <p class="mt-4 text-ivory/55 text-sm">Client satisfaction</p>
+        <div class="mt-5 h-1 rounded-full bg-white/5 overflow-hidden"><div class="h-full w-full bg-gradient-to-r from-violet to-cyan rounded-full"></div></div>
+      </div>
+      <div class="reveal rounded-3xl border hairline p-8">
+        <p class="font-display text-5xl sm:text-6xl"><span class="counter" data-target="12">0</span>+</p>
+        <p class="mt-4 text-ivory/55 text-sm">Technologies mastered</p>
+        <div class="mt-5 h-1 rounded-full bg-white/5 overflow-hidden"><div class="h-full w-[70%] bg-gradient-to-r from-violet to-cyan rounded-full"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TESTIMONIALS                                                   -->
+<!-- ============================================================ -->
+<section id="testimonials" class="relative py-28 sm:py-36 border-b hairline overflow-hidden">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <p class="reveal marker mb-4">// testimonials</p>
+    <h2 class="reveal font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] max-w-2xl mb-16">Don't just take my word for it.</h2>
+
+    <div class="reveal relative rounded-3xl glass p-8 sm:p-16 min-h-[300px] flex items-center">
+      <div id="testimonialTrack" class="w-full">
+        <div class="testimonial-slide" data-slide="0">
+          <p class="font-display text-2xl sm:text-3xl lg:text-4xl leading-snug mb-8">"Kerolos delivered our multi-brand site ahead of schedule, with a backend our internal team could actually maintain. Communication was clear from day one."</p>
+          <p class="font-mono text-sm text-cyan">Operations Director</p>
+          <p class="text-ivory/50 text-sm">Corporate &amp; FMCG client, Egypt</p>
+        </div>
+        <div class="testimonial-slide hidden" data-slide="1">
+          <p class="font-display text-2xl sm:text-3xl lg:text-4xl leading-snug mb-8">"We needed a bilingual store that actually felt premium. He nailed the design and the checkout flow has barely needed a fix since launch."</p>
+          <p class="font-mono text-sm text-cyan">Founder</p>
+          <p class="text-ivory/50 text-sm">Fashion &amp; e-commerce brand, Kuwait</p>
+        </div>
+        <div class="testimonial-slide hidden" data-slide="2">
+          <p class="font-display text-2xl sm:text-3xl lg:text-4xl leading-snug mb-8">"Reliable, fast, and easy to work with remotely across time zones. Our booking platform hasn't had a single critical issue since going live."</p>
+          <p class="font-mono text-sm text-cyan">Marketing Lead</p>
+          <p class="text-ivory/50 text-sm">Hospitality &amp; wellness client, Kuwait</p>
+        </div>
+      </div>
+
+      <div class="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 flex items-center gap-3">
+        <button id="testPrev" class="magnetic w-11 h-11 rounded-full border hairline flex items-center justify-center hover:border-cyan transition-colors" aria-label="Previous testimonial">←</button>
+        <button id="testNext" class="magnetic w-11 h-11 rounded-full border hairline flex items-center justify-center hover:border-cyan transition-colors" aria-label="Next testimonial">→</button>
+      </div>
+      <div class="absolute bottom-10 left-8 sm:left-16 flex items-center gap-2">
+        <span class="dot-ind w-6 h-1 rounded-full bg-cyan" data-dot="0"></span>
+        <span class="dot-ind w-6 h-1 rounded-full bg-white/15" data-dot="1"></span>
+        <span class="dot-ind w-6 h-1 rounded-full bg-white/15" data-dot="2"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CONTACT                                                        -->
+<!-- ============================================================ -->
+<section id="contact" class="relative py-28 sm:py-40 overflow-hidden">
+  <div class="aurora-bg">
+    <div class="aurora-blob bg-violet" style="width:50vw;height:50vw;top:-20%;left:50%;transform:translateX(-50%);animation:driftA 22s ease-in-out infinite;"></div>
+    <div class="aurora-blob bg-cyan" style="width:34vw;height:34vw;bottom:-10%;right:0;animation:driftB 26s ease-in-out infinite;"></div>
+  </div>
+  <div class="relative max-w-4xl mx-auto px-5 sm:px-8 text-center">
+    <p class="reveal marker mb-6">// let's talk</p>
+    <h2 class="reveal font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.98] mb-8">
+      Got an idea?<br/><span class="aurora-text italic">Let's build it properly.</span>
+    </h2>
+    <p class="reveal text-lg text-ivory/60 max-w-xl mx-auto mb-12">
+      Open to freelance and full-time opportunities. Whether it's a new product or a system that needs rebuilding right — let's talk.
+    </p>
+    <div class="reveal flex flex-wrap justify-center gap-4 mb-14">
+      <a href="mailto:keroloshanylahzy@gmail.com" class="magnetic rounded-full bg-ivory text-obsidian font-semibold px-8 py-4 text-[15px] hover:bg-white transition-colors">Send me an email →</a>
+      <a href="https://wa.me/201270253222" target="_blank" rel="noopener" class="magnetic rounded-full glass-light text-ivory font-medium px-8 py-4 text-[15px] hover:bg-white/[0.08] transition-colors">WhatsApp</a>
+    </div>
+
+    <div class="reveal flex flex-wrap justify-center gap-8 text-sm font-mono text-ivory/50">
+      <a href="https://github.com/Keroloshany007" target="_blank" rel="noopener" class="hover:text-cyan transition-colors">GitHub</a>
+      <a href="https://linkedin.com/in/keroloshanylahzy" target="_blank" rel="noopener" class="hover:text-cyan transition-colors">LinkedIn</a>
+      <span>Cairo, Egypt 🇪🇬 · GMT+2</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                         -->
+<!-- ============================================================ -->
+<footer class="relative border-t hairline py-10">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <p class="font-display text-lg">Kerolos Hany <span class="text-ivory/40 font-sans text-sm">— Full-Stack Developer</span></p>
+    <div class="flex gap-6 text-sm text-ivory/50 font-mono">
+      <a href="#home" class="hover:text-ivory transition-colors">Home</a>
+      <a href="#work" class="hover:text-ivory transition-colors">Work</a>
+      <a href="#contact" class="hover:text-ivory transition-colors">Contact</a>
+    </div>
+    <p class="text-xs font-mono text-ivory/35">© 2026 — Crafted with care in Cairo 🇪🇬</p>
+  </div>
+</footer>
+
+<!-- ============================================================ -->
+<!-- SCRIPTS                                                        -->
+<!-- ============================================================ -->
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------- Lenis smooth scroll ---------- */
+const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((time)=> lenis.raf(time*1000));
+gsap.ticker.lagSmoothing(0);
+
+/* ---------- Mobile menu ---------- */
+document.getElementById('menuToggle').addEventListener('click', ()=>{
+  document.getElementById('mobileMenu').classList.toggle('hidden');
+});
+
+/* ---------- Nav background on scroll ---------- */
+const nav = document.getElementById('siteNav');
+ScrollTrigger.create({
+  start: 80, end: 99999,
+  onUpdate: (self)=>{
+    if(self.scroll() > 80){ nav.classList.add('bg-obsidian/70','backdrop-blur-xl','border-b','hairline'); }
+    else{ nav.classList.remove('bg-obsidian/70','backdrop-blur-xl','border-b','hairline'); }
+  }
+});
+
+/* ---------- Cursor spotlight + ring + dot ---------- */
+const spot = document.getElementById('spotlight');
+const dot = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+const spotTo = { x: gsap.quickTo(spot,'x',{duration:.5,ease:'power3'}), y: gsap.quickTo(spot,'y',{duration:.5,ease:'power3'}) };
+const dotTo  = { x: gsap.quickTo(dot,'x',{duration:.12,ease:'power3'}), y: gsap.quickTo(dot,'y',{duration:.12,ease:'power3'}) };
+const ringTo = { x: gsap.quickTo(ring,'x',{duration:.4,ease:'power3'}), y: gsap.quickTo(ring,'y',{duration:.4,ease:'power3'}) };
+window.addEventListener('mousemove', (e)=>{
+  spotTo.x(e.clientX); spotTo.y(e.clientY);
+  dotTo.x(e.clientX); dotTo.y(e.clientY);
+  ringTo.x(e.clientX); ringTo.y(e.clientY);
+});
+document.querySelectorAll('a, button, .spotlight-card, .orb').forEach(el=>{
+  el.addEventListener('mouseenter', ()=> gsap.to(ring,{width:64,height:64,opacity:.9,borderColor:'#5EEAD4',duration:.3}));
+  el.addEventListener('mouseleave', ()=> gsap.to(ring,{width:38,height:38,opacity:.6,borderColor:'#8B7CF6',duration:.3}));
+});
+
+/* ---------- Magnetic buttons ---------- */
+document.querySelectorAll('.magnetic').forEach(btn=>{
+  btn.addEventListener('mousemove', (e)=>{
+    const r = btn.getBoundingClientRect();
+    const x = e.clientX - r.left - r.width/2;
+    const y = e.clientY - r.top - r.height/2;
+    gsap.to(btn, { x:x*0.35, y:y*0.45, duration:.4, ease:'power3' });
+  });
+  btn.addEventListener('mouseleave', ()=> gsap.to(btn,{x:0,y:0,duration:.5,ease:'elastic.out(1,0.4)'}));
+});
+
+/* ---------- Spotlight cards (mouse-follow glow) ---------- */
+document.querySelectorAll('.spotlight-card').forEach(card=>{
+  card.addEventListener('mousemove', (e)=>{
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--x', `${e.clientX - r.left}px`);
+    card.style.setProperty('--y', `${e.clientY - r.top}px`);
+  });
+});
+
+/* ---------- 3D tilt on project cards ---------- */
+document.querySelectorAll('.tilt').forEach(card=>{
+  card.addEventListener('mousemove', (e)=>{
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left)/r.width - 0.5;
+    const py = (e.clientY - r.top)/r.height - 0.5;
+    gsap.to(card, { rotateY: px*6, rotateX: -py*6, duration:.4, ease:'power2.out', transformPerspective:1000 });
+  });
+  card.addEventListener('mouseleave', ()=> gsap.to(card,{rotateX:0,rotateY:0,duration:.6,ease:'power3.out'}));
+});
+
+/* ---------- Hero entrance ---------- */
+gsap.timeline({ defaults:{ ease:'power3.out' } })
+  .to('#home .reveal-mask > span', { y:'0%', duration:1, stagger:.12 })
+  .to('#home .reveal', { opacity:1, y:0, duration:.9, stagger:.08 }, '-=0.5');
+
+/* hero stack + floating chips parallax */
+const heroVisual = document.getElementById('heroVisual');
+if(heroVisual){
+  heroVisual.addEventListener('mousemove', (e)=>{
+    const r = heroVisual.getBoundingClientRect();
+    const px = (e.clientX - r.left)/r.width - 0.5;
+    const py = (e.clientY - r.top)/r.height - 0.5;
+    gsap.to('#layer1', { x: px*30, y: py*20, duration:.6, ease:'power2.out' });
+    gsap.to('#layer2', { x: px*18, y: py*12, duration:.6, ease:'power2.out' });
+    gsap.to('#layer3', { x: px*8, y: py*6, duration:.6, ease:'power2.out' });
+    heroVisual.querySelectorAll('[data-depth]').forEach(el=>{
+      const d = parseFloat(el.dataset.depth);
+      gsap.to(el, { x: px*40*d*10, y: py*40*d*10, duration:.6, ease:'power2.out' });
+    });
+  });
+}
+
+/* ---------- Generic scroll reveals ---------- */
+gsap.utils.toArray('.reveal').forEach(el=>{
+  if(el.closest('#home')) return;
+  gsap.fromTo(el, {opacity:0, y:40}, {
+    opacity:1, y:0, duration:.9, ease:'power3.out',
+    scrollTrigger:{ trigger: el, start:'top 88%' }
+  });
+});
+
+/* ---------- Counters ---------- */
+gsap.utils.toArray('.counter').forEach(el=>{
+  const target = parseFloat(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  ScrollTrigger.create({
+    trigger: el, start:'top 85%', once:true,
+    onEnter: ()=>{
+      gsap.to({val:0}, { val:target, duration:1.6, ease:'power2.out',
+        onUpdate: function(){ el.textContent = Math.round(this.targets()[0].val) + suffix; } });
+    }
+  });
+});
+
+/* ---------- Skill orbs: float + parallax ---------- */
+document.querySelectorAll('.orb').forEach((orb,i)=>{
+  gsap.to(orb, { y: '+=14', duration: 3 + (i%4), repeat:-1, yoyo:true, ease:'sine.inOut', delay:i*0.15 });
+});
+document.querySelectorAll('.orb-cluster').forEach(cluster=>{
+  cluster.addEventListener('mousemove', (e)=>{
+    const r = cluster.getBoundingClientRect();
+    const px = (e.clientX - r.left)/r.width - 0.5;
+    const py = (e.clientY - r.top)/r.height - 0.5;
+    cluster.querySelectorAll('.orb').forEach((orb,i)=>{
+      gsap.to(orb, { x: px*(20+i*6), duration:.6, ease:'power2.out' });
+    });
+  });
+});
+
+/* ---------- Testimonial carousel (auto + controls) ---------- */
+const slides = document.querySelectorAll('.testimonial-slide');
+const dots = document.querySelectorAll('.dot-ind');
+let activeSlide = 0; let autoTimer;
+function showSlide(i){
+  slides.forEach((s,idx)=>{
+    if(idx===i){ s.classList.remove('hidden'); gsap.fromTo(s,{opacity:0,x:30},{opacity:1,x:0,duration:.6,ease:'power2.out'}); }
+    else{ s.classList.add('hidden'); }
+  });
+  dots.forEach((d,idx)=>{
+    d.classList.toggle('bg-cyan', idx===i);
+    d.classList.toggle('bg-white/15', idx!==i);
+  });
+  activeSlide = i;
+}
+function nextSlide(){ showSlide((activeSlide+1) % slides.length); }
+function prevSlide(){ showSlide((activeSlide-1+slides.length) % slides.length); }
+function startAuto(){ autoTimer = setInterval(nextSlide, 6000); }
+function stopAuto(){ clearInterval(autoTimer); }
+document.getElementById('testNext').addEventListener('click', ()=>{ nextSlide(); stopAuto(); startAuto(); });
+document.getElementById('testPrev').addEventListener('click', ()=>{ prevSlide(); stopAuto(); startAuto(); });
+startAuto();
+
+/* ---------- Particle background ---------- */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function initParticles(){
+  particles = [];
+  const count = Math.min(70, Math.floor(window.innerWidth/22));
+  for(let i=0;i<count;i++){
+    particles.push({
+      x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+      r: Math.random()*1.6 + 0.4,
+      vx: (Math.random()-0.5)*0.15, vy: (Math.random()-0.5)*0.15,
+      c: ['139,124,246','94,234,212','244,114,182'][Math.floor(Math.random()*3)]
+    });
+  }
+}
+function tick(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{
+    p.x += p.vx; p.y += p.vy;
+    if(p.x < 0) p.x = canvas.width; if(p.x > canvas.width) p.x = 0;
+    if(p.y < 0) p.y = canvas.height; if(p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(${p.c},0.5)`;
+    ctx.fill();
+  });
+  requestAnimationFrame(tick);
+}
+resize(); initParticles(); tick();
+window.addEventListener('resize', ()=>{ resize(); initParticles(); });
+</script>
+
+</body>
+</html>
